@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tenant/Shop Configuration
+model Tenant {
+  id        String   @id @default(cuid())
+  shop      String   @unique // my-store.myshopify.com
+  plan      String   @default("free") // free, basic, premium, enterprise
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  usage   Usage[]
+  audits  AuditLog[]
+}
+
+// Usage tracking per tenant
+model Usage {
+  id          String   @id @default(cuid())
+  tenantId    String
+  date        DateTime @default(now())
+  endpoint    String
+  model       String
+  tokensUsed  Int
+  cost        Float
+  success     Boolean
+  metadata    Json?
+  
+  // Relations
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@index([tenantId, date])
+}
+
+// Audit logging
+model AuditLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  action      String   // e.g., "GENERATE_DESCRIPTION", "UPDATE_SETTINGS"
+  status      String   // success, failed, partial
+  resourceId  String?  // e.g., product ID
+  metadata    Json?    // Additional context
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@index([tenantId, createdAt])
+}
+
+// API Key management for internal services
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String
+  key         String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+  
+  @@index([key])
+}
