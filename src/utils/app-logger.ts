@@ -1,4 +1,4 @@
-import winston, { format } from 'winston';
+import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
@@ -11,16 +11,57 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-const { combine, timestamp, printf, colorize, align } = format;
+const { combine, timestamp, printf, colorize, align } = winston.format;
 
-// Define log format
-interface LogInfo {
-  level: string;
-  message: string;
-  timestamp?: string;
-  requestId?: string;
-  [key: string]: any;
-}
+// Custom log format for development
+const devFormat = printf(({ level, message, timestamp, requestId, ...meta }) => {
+  const metaString = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
+  return `${timestamp} [${level}] ${requestId ? `[${requestId}] ` : ''}${message}${metaString}`;
+});
+
+// Create the logger instance
+const logger = winston.createLogger({
+  level: config.isDevelopment ? 'debug' : 'info',
+  format: combine(
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    config.isDevelopment ? colorize() : winston.format.json(),
+    config.isDevelopment ? devFormat : winston.format.json(),
+    align()
+  ),
+  defaultMeta: { service: 'shopify-browser-agent' },
+  transports: [
+    // Console transport
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format((info) => {
+          if (info.stack) {
+            info.message = `${info.message}\n${info.stack}`;
+            delete info.stack;
+          }
+          return info;
+        })()
+      ),
+    }),
+    
+    // File transport for errors
+    new winston.transports.File({
+      filename: path.join(logDir, 'error.log'),
+      level: 'error',
+      maxsize: 10 * 1024 * 1024, // 10MB
+      maxFiles: 5,
+    }),
+    
+    // File transport for all logs
+    new winston.transports.File({
+      filename: path.join(logDir, 'combined.log'),
+      maxsize: 20 * 1024 * 1024, // 20MB
+      maxFiles: 5,
+    })
+  ],
+  exitOnError: false,
+  handleExceptions: true,
+  handleRejections: true,
+});
 
 // Request ID middleware
 export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -57,56 +98,6 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
 
   next();
 };
-
-// Custom log format for development
-const devFormat = printf(({ level, message, timestamp, requestId, ...meta }) => {
-  const metaString = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
-  return `${timestamp} [${level}] ${requestId ? `[${requestId}] ` : ''}${message}${metaString}`;
-});
-
-// Create the logger instance
-const logger = winston.createLogger({
-  level: config.isDevelopment ? 'debug' : 'info',
-  format: combine(
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    config.isDevelopment ? colorize() : format.json(),
-    config.isDevelopment ? devFormat : format.json(),
-    align()
-  ),
-  defaultMeta: { service: 'shopify-browser-agent' },
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: format.combine(
-        format((info) => {
-          if (info.stack) {
-            info.message = `${info.message}\n${info.stack}`;
-            delete info.stack;
-          }
-          return info;
-        })()
-      ),
-    }),
-    
-    // File transport for errors
-    new winston.transports.File({
-      filename: path.join(logDir, 'error.log'),
-      level: 'error',
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-    }),
-    
-    // File transport for all logs
-    new winston.transports.File({
-      filename: path.join(logDir, 'combined.log'),
-      maxsize: 20 * 1024 * 1024, // 20MB
-      maxFiles: 5,
-    })
-  ],
-  exitOnError: false,
-  handleExceptions: true,
-  handleRejections: true,
-});
 
 // Create a stream for morgan logging
 export const stream = {

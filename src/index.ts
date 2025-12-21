@@ -1,39 +1,35 @@
+import 'module-alias/register';
 import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { setupRoutes } from './api/routes';
-import { logger } from './utils/logger';
+import { logger, requestIdMiddleware, requestLogger } from './utils/app-logger';
+import { config } from './config';
 
 // Load environment variables
 dotenv.config();
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// Add request ID to all requests
+app.use(requestIdMiddleware);
 
 // Request logging
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
-  });
-  
-  next();
-});
+app.use(requestLogger);
+
+// Enable CORS
+app.use(cors({
+  origin: config.cors.origin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+  exposedHeaders: ['X-Request-ID'],
+  credentials: true
+}));
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -69,13 +65,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start the server
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running in ${process.env.NODE_ENV || 'development'} mode`);
-  logger.info(`Server listening on http://localhost:${PORT}`);
-  logger.info(`API Documentation available at http://localhost:${PORT}/api-docs`);
+const server = app.listen(config.port, () => {
+  logger.info(`Server is running on port ${config.port} in ${config.env} mode`);
+  logger.info(`Server listening on http://localhost:${config.port}`);
+  logger.info(`API Documentation available at http://localhost:${config.port}/api-docs`);
 }).on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') {
-    logger.error(`Port ${PORT} is already in use. Please try a different port.`);
+    logger.error(`Port ${config.port} is already in use. Please try a different port.`);
   } else {
     logger.error('Failed to start server:', err);
   }
