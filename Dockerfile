@@ -13,7 +13,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN npx tsc -p tsconfig.minimal.json
 
 # Production image
 FROM base AS runner
@@ -43,4 +43,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/minimal/server.js"]
