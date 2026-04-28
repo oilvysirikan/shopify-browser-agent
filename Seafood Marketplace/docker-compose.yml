@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: seafood-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marketplace_development
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: seafood-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: seafood-api
+    environment:
+      RAILS_ENV: development
+      PORT: 3000
+      ACTIVE_JOB_QUEUE_ADAPTER: sidekiq
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/marketplace_development
+      REDIS_URL: redis://redis:6379/0
+      FACEBOOK_WORKER_URL: http://host.docker.internal:4000
+      WORKER_SHARED_TOKEN: change_me_worker_token
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '3000:3000'
+
+  sidekiq:
+    build:
+      context: ./apps/api
+    container_name: seafood-sidekiq
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    environment:
+      RAILS_ENV: development
+      ACTIVE_JOB_QUEUE_ADAPTER: sidekiq
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/marketplace_development
+      REDIS_URL: redis://redis:6379/0
+      FACEBOOK_WORKER_URL: http://host.docker.internal:4000
+      WORKER_SHARED_TOKEN: change_me_worker_token
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
+  redis_data:

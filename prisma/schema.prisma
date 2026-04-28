@@ -69,6 +69,77 @@ model ApiKey {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   lastUsedAt  DateTime?
-  
+
   @@index([key])
+}
+
+// Chat Platform Integrations
+model ChatPlatform {
+  id        String   @id @default(cuid())
+  tenantId  String
+  platform  String   // line, whatsapp, facebook
+  isActive  Boolean  @default(true)
+  config    Json     // API keys, tokens, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Customer Conversations
+model Conversation {
+  id          String   @id @default(cuid())
+  tenantId    String
+  platform    String   // line, whatsapp, web
+  customerId  String   // platform-specific user ID
+  customerName String?
+  messages    Json[]   // Array of message objects
+  cart        Json?    // Current cart state
+  status      String   @default("active") // active, closed, pending
+  lastMessageAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, platform])
+  @@index([customerId])
+}
+
+// AI Pricing Rules
+model PricingRule {
+  id          String   @id @default(cuid())
+  tenantId    String
+  productId   String?
+  name        String
+  type        String   // dynamic, competitor, demand, time
+  conditions  Json     // Rule conditions
+  adjustments Json     // Price adjustments
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Marketing Campaigns
+model MarketingCampaign {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  type        String   // email, sms, push
+  target      String   // all, new, returning
+  content     String
+  status      String   @default("draft")
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  metrics     Json?    // opens, clicks, conversions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// AI Autonomous Tasks
+model AutonomousTask {
+  id          String   @id @default(cuid())
+  tenantId    String
+  type        String   // pricing, marketing, inventory
+  status      String   @default("pending")
+  priority    String   @default("medium")
+  data        Json     // Task parameters
+  result      Json?    // Task result
+  executedAt  DateTime?
+  createdAt   DateTime @default(now())
 }

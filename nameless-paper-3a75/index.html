@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html class="light" lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Battle Planner - AI-powered stall booking assistant" />
+    <title>Battle Planner</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-dim": "#791903",
+              "surface-bright": "#f9faf4",
+              "tertiary-fixed-dim": "#eddac3",
+              "surface-dim": "#d7dbd3",
+              "outline-variant": "#aeb3ac",
+              "on-error": "#fff7f6",
+              "on-primary-fixed-variant": "#5a5d4e",
+              "on-surface-variant": "#5b605a",
+              "on-primary-container": "#505344",
+              "secondary-container": "#ffd9dd",
+              "on-primary": "#f9fbe6",
+              "on-secondary-fixed-variant": "#7c4f55",
+              "primary-fixed-dim": "#d4d6c3",
+              background: "#f9faf4",
+              primary: "#5e6151",
+              "surface-tint": "#5e6151",
+              "inverse-primary": "#fcfee9",
+              "tertiary-dim": "#5e513f",
+              "secondary-fixed-dim": "#ffc6cd",
+              "primary-dim": "#525546",
+              "on-background": "#2f342e",
+              secondary: "#805259",
+              "surface-container-high": "#e6e9e2",
+              surface: "#f9faf4",
+              "on-tertiary": "#fff8f2",
+              "surface-container": "#ecefe8",
+              "surface-container-low": "#f2f4ee",
+              "on-error-container": "#6e1400",
+              "on-tertiary-fixed-variant": "#6c5f4c",
+              "on-primary-fixed": "#3e4133",
+              "surface-container-lowest": "#ffffff",
+              "surface-variant": "#dfe4db",
+              "on-secondary-fixed": "#5c333a",
+              "secondary-dim": "#73474d",
+              "on-surface": "#2f342e",
+              "tertiary-fixed": "#fbe8d0",
+              "primary-container": "#e2e4d0",
+              "on-secondary-container": "#71454c",
+              "on-secondary": "#fff7f7",
+              "tertiary-container": "#fbe8d0",
+              "surface-container-highest": "#dfe4db",
+              tertiary: "#6a5d4a",
+              "secondary-fixed": "#ffd9dd",
+              outline: "#777c75",
+              "error-container": "#fd795a",
+              error: "#a73b21",
+              "on-tertiary-container": "#625543",
+              "primary-fixed": "#e2e4d0",
+              "inverse-surface": "#0c0f0c",
+              "inverse-on-surface": "#9c9d99",
+              "on-tertiary-fixed": "#4f4331"
+            },
+            fontFamily: {
+              headline: ["Manrope"],
+              body: ["Manrope"],
+              label: ["Manrope"],
+              display: "Manrope"
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem"
+            }
+          }
+        }
+      };
+    </script>
+
+    <style type="text/tailwindcss">
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .block-shadow {
+        box-shadow: 4px 4px 0px 0px rgba(130, 119, 61, 0.2);
+      }
+      .inner-map-shadow {
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .stall-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+      }
+      .marker-rotate {
+        transform: rotate(-1deg);
+      }
+    </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-body text-on-background selection:bg-primary-container h-screen overflow-hidden flex flex-col">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="app"></div>
+    <script type="module" src="/src/client.tsx"></script>
+  </body>
+</html>

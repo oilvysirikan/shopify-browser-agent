@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#008060" />
+  <title>Shopify AI Content Generator</title>
+  <link rel="stylesheet" href="https://unpkg.com/@shopify/polaris@6.6.0/styles.min.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    #root {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="app-container">
+    <div class="Polaris-Page">
+      <div class="Polaris-Page-Header">
+        <div class="Polaris-Page-Header__MainContent">
+          <div class="Polaris-Header-Title">
+            <h1 class="Polaris-DisplayText">Welcome to Shopify Browser Agent</h1>
+          </div>
+        </div>
+      </div>
+      <div class="Polaris-Page-Content">
+        <div class="Polaris-Card">
+          <div class="Polaris-Card__Section">
+            <p>Your app is successfully installed and running! 🎉</p>
+            <p>Shop: <span id="shop-domain">Loading...</span></p>
+            <div class="Polaris-ButtonGroup">
+              <button id="take-action" class="Polaris-Button Polaris-Button--primary">
+                <span class="Polaris-Button__Content">Take Action</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get shop domain from URL
+      const params = new URLSearchParams(window.location.search);
+      const shop = params.get('shop');
+      
+      if (shop) {
+        document.getElementById('shop-domain').textContent = shop;
+      }
+      
+      // Handle button click
+      document.getElementById('take-action').addEventListener('click', function() {
+        alert('Action button clicked!');
+      });
+    });
+  </script>
+</body>
+</html>

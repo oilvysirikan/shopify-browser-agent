@@ -1,0 +1,6 @@
+.bundle
+vendor
+tmp
+log
+node_modules
+.git
