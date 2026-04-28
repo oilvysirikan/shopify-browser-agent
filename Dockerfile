@@ -13,11 +13,16 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npx tsc -p tsconfig.minimal.json
+RUN echo "Cache bust: $(date)" && npx tsc -p tsconfig.minimal.json
 
 # Production image
 FROM base AS runner
 WORKDIR /app
+
+# Install Python and edge-tts for TTS functionality (updated)
+RUN apk add --no-cache python3 py3-pip ffmpeg
+RUN pip3 install --upgrade pip
+RUN pip3 install edge-tts --break-system-packages
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs

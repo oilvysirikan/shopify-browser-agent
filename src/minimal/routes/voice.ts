@@ -23,12 +23,12 @@ router.get('/health', (req, res) => {
   res.json({
     success: true,
     data: {
-      status: hasApiKey ? 'ok' : 'unconfigured',
+      status: hasApiKey ? 'ok' : 'limited',
       service: 'voice',
       timestamp: new Date().toISOString(),
       features: {
         stt: hasApiKey,
-        tts: hasApiKey,
+        tts: true, // edge-tts doesn't require API key
         websocket: hasApiKey,
       },
     },
@@ -86,52 +86,31 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
-// TTS Endpoint - Convert text to speech
+// TTS Endpoint - Convert text to speech using edge-tts
 router.post('/speak', async (req, res) => {
   try {
-    const { text, model = 'mistral-tts', voice = 'alloy', responseFormat = 'mp3' } = req.body;
+    const { text, voice = 'th-TH-PremwadeeNeural' } = req.body;
 
     if (!text) {
-      return res.status(400).json({
-        success: false,
-        error: 'Text is required',
-      });
+      return res.status(400).json({ success: false, error: 'Text is required' });
     }
 
-    const apiKey = process.env.MISTRAL_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({
-        success: false,
-        error: 'MISTRAL_API_KEY not configured',
-      });
-    }
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
+    const tmpFile = path.join('/tmp', `tts-${Date.now()}.mp3`);
 
-    const response = await axios.post('https://api.mistral.ai/v1/audio/speech', {
-      model,
-      input: text,
-      voice,
-      response_format: responseFormat,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      responseType: 'arraybuffer',
-    });
+    execSync(`edge-tts --voice "${voice}" --text "${text}" --write-media "${tmpFile}"`);
 
-    const audioBuffer = Buffer.from(response.data);
+    const audioBuffer = fs.readFileSync(tmpFile);
+    fs.unlinkSync(tmpFile);
 
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Length', audioBuffer.length);
-    res.setHeader('Content-Disposition', 'inline; filename="speech.mp3"');
     res.status(200).send(audioBuffer);
-  } catch (error) {
-    console.error('TTS error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Text-to-speech failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: 'TTS failed', message: err.message });
   }
 });
 
