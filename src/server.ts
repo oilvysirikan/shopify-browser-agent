@@ -16,6 +16,7 @@ import apiRouter from './api/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { corsMiddleware } from './middleware/cors.js';
 import { app as monitoringApp } from './monitoring/dashboard.js';
+import { voiceWebSocketHandler } from './websocket/voice.websocket.js';
 
 // Get directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -54,6 +55,7 @@ class App {
     this.initializeErrorHandling();
     this.initializeSwagger();
     this.initializeServer();
+    this.initializeWebSockets();
   }
 
   private initializeMiddlewares(): void {
@@ -191,6 +193,12 @@ class App {
     }
   }
 
+  private initializeWebSockets(): void {
+    // Initialize Voice WebSocket handler
+    voiceWebSocketHandler.initialize(this.server);
+    logger.info('WebSocket handlers initialized');
+  }
+
   public async listen(): Promise<void> {
     try {
       // Test database connection
@@ -214,6 +222,9 @@ class App {
     logger.info('Shutting down server...');
     
     try {
+      // Close WebSocket handlers
+      voiceWebSocketHandler.shutdown();
+
       // Close HTTP/HTTPS server
       if (this.server) {
         await new Promise<void>((resolve, reject) => {
