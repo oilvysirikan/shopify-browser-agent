@@ -5,9 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/minimal/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/minimal/server.ts",
+    "dev:cloudflare": "npx wrangler dev src/cloudflare/index.ts",
+    "deploy:cloudflare": "npx wrangler deploy",
+    "types:cloudflare": "npx wrangler types",
     "test": "echo \"No tests yet\" && exit 0",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""

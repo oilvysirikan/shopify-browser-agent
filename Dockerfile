@@ -13,15 +13,15 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
+RUN rm -f .env .env.* 2>/dev/null || true
 RUN echo "Cache bust: $(date)" && npx tsc -p tsconfig.minimal.json
 
 # Production image
 FROM base AS runner
 WORKDIR /app
 
-# Install Python and edge-tts for TTS functionality (updated)
+# Install Python and edge-tts for TTS functionality
 RUN apk add --no-cache python3 py3-pip ffmpeg
-RUN pip3 install --upgrade pip
 RUN pip3 install edge-tts --break-system-packages
 
 # Create non-root user
@@ -30,8 +30,10 @@ RUN adduser --system --uid 1001 nodejs
 
 # Copy built application
 COPY --from=deps /app/node_modules ./node_modules
+RUN rm -rf /app/dist/* 2>/dev/null || true
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+RUN ls -la /app/dist/minimal/routes/ | grep voice
 
 # Set environment variables
 ENV NODE_ENV=production
